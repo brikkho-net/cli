@@ -16,6 +16,7 @@ import (
 type LogsActor interface {
 	GetRecentLogsForApplicationByNameAndSpace(appName string, spaceGUID string, client sharedaction.LogCacheClient) ([]sharedaction.LogMessage, v2action.Warnings, error)
 	GetStreamingLogsForApplicationByNameAndSpace(appName string, spaceGUID string, client sharedaction.LogCacheClient) (<-chan sharedaction.LogMessage, <-chan error, context.CancelFunc, v2action.Warnings, error)
+	ScheduleTokenRefresh() (chan bool, error)
 }
 
 type LogsCommand struct {
@@ -78,8 +79,14 @@ func (cmd LogsCommand) Execute(args []string) error {
 	if cmd.Recent {
 		return cmd.displayRecentLogs()
 	}
+	quitNowChannel, err := cmd.Actor.ScheduleTokenRefresh()
+	if err != nil {
+		return err
+	}
 
-	return cmd.streamLogs()
+	err = cmd.streamLogs()
+	quitNowChannel <- true
+	return err
 }
 
 func (cmd LogsCommand) displayRecentLogs() error {

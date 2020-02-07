@@ -152,6 +152,13 @@ var _ = Describe("logs command", func() {
 		When("the --recent flag is not provided", func() {
 			BeforeEach(func() {
 				cmd.Recent = false
+				fakeActor.ScheduleTokenRefreshStub = func() (chan bool, error) {
+					quitNowChannel := make(chan bool, 1)
+					go func() {
+						<-quitNowChannel
+					}()
+					return quitNowChannel, nil
+				}
 			})
 
 			When("the logs setup returns an error", func() {
@@ -244,6 +251,17 @@ var _ = Describe("logs command", func() {
 					Expect(appName).To(Equal("some-app"))
 					Expect(spaceGUID).To(Equal("some-space-guid"))
 					Expect(client).To(Equal(logCacheClient))
+				})
+
+				When("the token refresher returns an error", func() {
+					BeforeEach(func() {
+						cmd.Recent = false
+						fakeActor.ScheduleTokenRefreshReturns(nil, errors.New("fjords pining"))
+					})
+					It("displays the errors", func() {
+						Expect(executeErr).To(MatchError("fjords pining"))
+						Expect(fakeActor.GetStreamingLogsForApplicationByNameAndSpaceCallCount()).To(Equal(0))
+					})
 				})
 			})
 		})

@@ -3,6 +3,7 @@ package v2action_test
 import (
 	"context"
 	"errors"
+	"github.com/SermoDigital/jose/jws"
 	"time"
 
 	"code.cloudfoundry.org/cli/actor/sharedaction"
@@ -413,5 +414,26 @@ var _ = Describe("Logging Actions", func() {
 				Expect(fakeLogCacheClient.ReadCallCount()).To(Equal(0))
 			})
 		})
+	})
+
+	Describe("ScheduleTokenRefresh", func() {
+		var (
+			quitNowChannel chan bool
+			err            error
+		)
+		JustBeforeEach(func() {
+			quitNowChannel, err = actor.ScheduleTokenRefresh()
+		})
+
+		When("the refresh token is bad", func() {
+			BeforeEach(func() {
+				fakeConfig.RefreshTokenReturns("bad refresh token")
+			})
+			It("will not refresh the access token", func() {
+				Expect(err).To(MatchError(jws.ErrNotCompact))
+				Expect(quitNowChannel).To(BeNil())
+			})
+		})
+
 	})
 })

@@ -49,6 +49,18 @@ type FakeLogsActor struct {
 		result4 v2action.Warnings
 		result5 error
 	}
+	ScheduleTokenRefreshStub        func() (chan bool, error)
+	scheduleTokenRefreshMutex       sync.RWMutex
+	scheduleTokenRefreshArgsForCall []struct {
+	}
+	scheduleTokenRefreshReturns struct {
+		result1 chan bool
+		result2 error
+	}
+	scheduleTokenRefreshReturnsOnCall map[int]struct {
+		result1 chan bool
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -195,6 +207,61 @@ func (fake *FakeLogsActor) GetStreamingLogsForApplicationByNameAndSpaceReturnsOn
 	}{result1, result2, result3, result4, result5}
 }
 
+func (fake *FakeLogsActor) ScheduleTokenRefresh() (chan bool, error) {
+	fake.scheduleTokenRefreshMutex.Lock()
+	ret, specificReturn := fake.scheduleTokenRefreshReturnsOnCall[len(fake.scheduleTokenRefreshArgsForCall)]
+	fake.scheduleTokenRefreshArgsForCall = append(fake.scheduleTokenRefreshArgsForCall, struct {
+	}{})
+	fake.recordInvocation("ScheduleTokenRefresh", []interface{}{})
+	fake.scheduleTokenRefreshMutex.Unlock()
+	if fake.ScheduleTokenRefreshStub != nil {
+		return fake.ScheduleTokenRefreshStub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.scheduleTokenRefreshReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeLogsActor) ScheduleTokenRefreshCallCount() int {
+	fake.scheduleTokenRefreshMutex.RLock()
+	defer fake.scheduleTokenRefreshMutex.RUnlock()
+	return len(fake.scheduleTokenRefreshArgsForCall)
+}
+
+func (fake *FakeLogsActor) ScheduleTokenRefreshCalls(stub func() (chan bool, error)) {
+	fake.scheduleTokenRefreshMutex.Lock()
+	defer fake.scheduleTokenRefreshMutex.Unlock()
+	fake.ScheduleTokenRefreshStub = stub
+}
+
+func (fake *FakeLogsActor) ScheduleTokenRefreshReturns(result1 chan bool, result2 error) {
+	fake.scheduleTokenRefreshMutex.Lock()
+	defer fake.scheduleTokenRefreshMutex.Unlock()
+	fake.ScheduleTokenRefreshStub = nil
+	fake.scheduleTokenRefreshReturns = struct {
+		result1 chan bool
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeLogsActor) ScheduleTokenRefreshReturnsOnCall(i int, result1 chan bool, result2 error) {
+	fake.scheduleTokenRefreshMutex.Lock()
+	defer fake.scheduleTokenRefreshMutex.Unlock()
+	fake.ScheduleTokenRefreshStub = nil
+	if fake.scheduleTokenRefreshReturnsOnCall == nil {
+		fake.scheduleTokenRefreshReturnsOnCall = make(map[int]struct {
+			result1 chan bool
+			result2 error
+		})
+	}
+	fake.scheduleTokenRefreshReturnsOnCall[i] = struct {
+		result1 chan bool
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeLogsActor) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -202,6 +269,8 @@ func (fake *FakeLogsActor) Invocations() map[string][][]interface{} {
 	defer fake.getRecentLogsForApplicationByNameAndSpaceMutex.RUnlock()
 	fake.getStreamingLogsForApplicationByNameAndSpaceMutex.RLock()
 	defer fake.getStreamingLogsForApplicationByNameAndSpaceMutex.RUnlock()
+	fake.scheduleTokenRefreshMutex.RLock()
+	defer fake.scheduleTokenRefreshMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
