@@ -11,7 +11,7 @@ import (
 	. "github.com/onsi/gomega/gexec"
 )
 
-var _ = Describe("Logs Command", func() {
+var _ = FDescribe("Logs Command", func() {
 	Describe("help", func() {
 		It("displays command usage to output", func() {
 			session := helpers.CF("logs", "--help")
@@ -143,7 +143,7 @@ var _ = Describe("Logs Command", func() {
 			})
 
 			Context("without the --recent flag", func() {
-				It("streams logs out to the screen", func() {
+				FIt("streams logs out to the screen", func() {
 					session := helpers.CF("logs", appName)
 					defer session.Terminate()
 

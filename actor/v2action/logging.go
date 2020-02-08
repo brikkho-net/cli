@@ -52,32 +52,33 @@ func (actor Actor) GetStreamingLogsForApplicationByNameAndSpace(appName string, 
 }
 
 func (actor Actor) ScheduleTokenRefresh() (chan bool, error) {
-	accessTokenString, err := actor.RefreshAccessToken(actor.Config.RefreshToken())
-	if err != nil {
-		return nil, err
-	}
+	accessTokenString := actor.Config.AccessToken()
+	// accessTokenString, err := actor.RefreshAccessToken(actor.Config.RefreshToken())
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// check grant type: user or client?
+	// if user, refresh now**
+	// if client, do nothing (we can't refresh an client access token without the client secret, which we no longer store
 	accessTokenString = strings.TrimPrefix(accessTokenString, "bearer ")
 	token, err := jws.ParseJWT([]byte(accessTokenString))
 	if err != nil {
 		return nil, err
 	}
 
-	var expiresIn time.Duration
+	var timeToRefresh time.Duration
 	expiration, ok := token.Claims().Expiration()
 	if ok {
-		expiresIn = time.Until(expiration)
-
-		// When we refresh exactly every EXPIRY_DURATION nanoseconds usually the auth token
-		// ends up expiring on the log-cache client. Better to refresh a little more often
-		// to avoid log outage
-		expiresIn = expiresIn * 9 / 10
+		expiresIn := time.Until(expiration)
+		timeToRefresh = expiresIn * 9 / 10
 	} else {
 		return nil, errors.New("Failed to get an expiry time from the current access token")
 	}
 	quitNowChannel := make(chan bool, 1)
 
 	go func() {
-		ticker := time.NewTicker(expiresIn)
+		ticker := time.NewTicker(timeToRefresh)
 		defer ticker.Stop()
 		for {
 			select {
